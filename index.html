@@ -1,0 +1,61 @@
+<!-- docs/index.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Gráficos Dinâmicos de Telecom</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <h1>Gráficos de Ordens de Serviço</h1>
+    <div id="totais"></div>
+    <div id="prazos"></div>
+    <div id="fases"></div>
+    <div id="documentacao"></div>
+    <div id="pedidos_entregas"></div>
+
+    <script>
+        // Carregar dados do JSON
+        fetch('data.json')
+            .then(response => response.json())
+            .then(data => {
+                // Gráfico de Totais
+                Plotly.newPlot('totais', [{
+                    x: ['Total OS', 'OS em Andamento', 'OS antes de Construído', 'OS Interrompida', 'OS Plano de Emenda', 'OS Carta Concessionária'],
+                    y: Object.values(data.totais),
+                    type: 'bar'
+                }], { title: 'Totais de Ordens de Serviço' });
+
+                // Gráfico de Prazos
+                Plotly.newPlot('prazos', [{
+                    values: Object.values(data.prazos),
+                    labels: ['<=30 dias', '31-60 dias', '61-90 dias', '91-120 dias', '>120 dias'],
+                    type: 'pie'
+                }], { title: 'Prazos de Entrega (OS antes de Construído)' });
+
+                // Gráfico de Fases
+                Plotly.newPlot('fases', [{
+                    x: ['Sem Fase', 'Projeto', 'Lançamento de Cabo', 'Fusão'],
+                    y: Object.values(data.fases),
+                    type: 'bar'
+                }], { title: 'OS em Execução por Fase' });
+
+                // Gráfico de Documentação
+                Plotly.newPlot('documentacao', [{
+                    x: ['Aguardando DOC', 'Cadastro SAGRE', 'Validação As-Built', 'Enviar As-Built'],
+                    y: Object.values(data.documentacao),
+                    type: 'bar'
+                }], { title: 'OS por Status de Documentação' });
+
+                // Gráfico de Pedidos x Entregas
+                const meses = [...new Set([...Object.keys(data.pedidos_entregas.pedidos), ...Object.keys(data.pedidos_entregas.entregas)])];
+                const pedidos = meses.map(m => data.pedidos_entregas.pedidos[m] || 0);
+                const entregas = meses.map(m => data.pedidos_entregas.entregas[m] || 0);
+                Plotly.newPlot('pedidos_entregas', [
+                    { x: meses, y: pedidos, type: 'scatter', name: 'Pedidos' },
+                    { x: meses, y: entregas, type: 'scatter', name: 'Entregas' }
+                ], { title: 'Pedidos x Entregas por Mês/Ano' });
+            });
+    </script>
+</body>
+</html>
